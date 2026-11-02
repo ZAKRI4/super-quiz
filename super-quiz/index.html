@@ -58,6 +58,8 @@ h2{font-size:15px;font-weight:600;color:var(--mut);margin-bottom:8px}
 .ab .dl{border-color:var(--no);color:#ff8da1}
 .ar input{padding:6px 10px;font-size:15px;text-align:right}
 .hide{display:none}
+.ar.flag{background:#ff5a7814;border-radius:8px;padding-inline:8px}
+.ar .tag{color:#ff8da1;font-size:12px;margin-inline-start:6px}
 footer{text-align:center;color:#5f7a9c;font-size:13px;margin-top:20px}
 </style>
 </head>
@@ -96,33 +98,16 @@ footer{text-align:center;color:#5f7a9c;font-size:13px;margin-top:20px}
     <button class="btn" id="again">العب مرة أخرى</button>
     <div class="note" id="mode"></div>
   </section>
-
   <section id="admin" class="hide">
     <div class="glass" id="alog"><h2>دخول المشرف</h2><input id="apw" type="password" placeholder="كلمة السر" autocomplete="off"><div class="err" id="aerr"></div><button class="btn" id="alogin">دخول</button></div>
-    <div class="glass hide" id="apanel"><h2>إدارة المشتركين <span id="acount"></span></h2><div id="alist"></div><button class="btn" id="areset">تصفير اللوحة</button><button class="btn" id="aexit">خروج</button></div>
+    <div class="glass hide" id="apanel"><h2>إدارة المشتركين <span id="acount"></span></h2><div class="err" id="amsg"></div><div id="alist"></div><button class="btn" id="apurge">حذف الأسماء غير اللائقة</button><button class="btn" id="areset">تصفير اللوحة</button><button class="btn" id="apwbtn">تغيير كلمة السر</button><div class="hide" id="apwbox"><input id="apw2" type="password" placeholder="كلمة السر الجديدة (6 أحرف على الأقل)" autocomplete="off"><button class="btn" id="apwsave">حفظ كلمة السر الجديدة</button></div><button class="btn" id="aexit">خروج</button></div>
   </section>
   <footer>فريق SUPER للروبوتات</footer>
 </div>
 
+<script src="filter.js"></script>
 <script>
-const BAD=new TextDecoder().decode(Uint8Array.from(atob("2YPYs9mF2YMs2YPYs9in2YUs2YPYs9iu2Kos2YPYs9in2K7YqizZg9iz2YrZhdmDLNi02LHZhdmI2Lcs2YXZhtmK2YjZgyzZhdmG2YrZgyzZhdiq2YbYp9mDLNmG2YrZg9mF2YMs2YrZhtmK2YMs2YbZitin2YMs2YLYrdio2Ycs2KfYqNmGINin2YTZg9mE2Kgs2KfYqNmGINin2YTYrdix2KfZhSzZiNmE2K8g2KfZhNit2LHYp9mFLNmI2YTYryDYp9mE2LLZhtinLNin2KjZhiDYp9mE2LLZhtinLNin2KjZhiDYp9mE2YLYrdio2Ycs2YjZhNivINin2YTZgtit2KjZhyzYqNmG2Kog2KfZhNmC2K3YqNmHLNin2KjZhiDYp9mE2LLYp9mG2YrZhyzYp9io2YYg2KfZhNi02LHZhdmI2Lcs2LLYp9mG2YrZhyzYudin2YfYsSzYr9mK2YjYqyzYs9in2YLYt9mHLNiv2KfYudi0LNiu2YbZitirLNmE2YjYt9mKLNiy2YXYp9mELH7Zg9izLH7YstioLH7Ystio2LEsfti32YrYsix+2YbYp9mDLH7YrdmF2KfYsSx+2K7Zhtiy2YrYsSx+2LrYqNmKLH7YrdmC2YrYsSx+2YjYs9iuLH7Zgtiw2LEsftiq2YrYsyx+2K7YsdinLD3ZhtmK2YMsPdi52LHYtSw92LnYsdi12YcsPdiu2YjZhCw92LLZhdmELD3Ystin2YXZhCw92YLZiNin2K8sPdio2LLYp9iyLD3Yp9mF2YMsPdin2K7YqtmDLD3YqNmG2KrZgyw92KjYp9iq2YMsPdin2KjZiNmDLD3YudmF2YMsPdiu2KfZhNmDLD3YrNiv2KrZgyw92KfYrtmI2YMsPdin2KjZitmDLD3Yp9mF2YPZhSw92KfYqNmI2YPZhSw92LnZhdmD2YUsPdiu2KfZhNiq2YMsPdi52YXYqtmDLD3YstmI2KzYqtmDLD3Zhdix2KrZgyw92KfZh9mE2YMsPdi52LHYttmDLD3Yp9mF2YcsPdin2K7YqtmHLD3YtNin2LAsPdiz2K3Yp9mCLD3ZhNmI2KfYtyw92YbYp9iy2YosPdiy2KfZhtmKLD3YqNi62YosPdmD2LMsPdiy2KgsZnVjayxmY3VrLHBodWNrLG1vdGhlcmZ1Y2ssc2hpdCxiaXRjaCxjdW50LHdob3JlLHNsdXQsYmFzdGFyZCxmYWdnb3QsYXNzaG9sZSxwdXNzeSxwdXNzaWVzLHBvcm4sZGlja2hlYWQsY29ja3N1Y2ssYmxvd2pvYixoYW5kam9iLHdhbmtlcixyZXRhcmQscGVuaXMsdmFnaW5hLGRpbGRvLGhlbnRhaSxjdW1zaG90LGlzaXMsaGl0bGVyLHRlcnJvcmlzdCxzdHVwaWQsaWRpb3QsbG9zZXIsa29zmWFrLGtvc21hayxzaGFybW91dCxzaGFybW91dHEscWFoYmEsa2FoYmEsbWFueWFrLG1hbnlvayxtYW55b3VrLGtoYXdhbCx+Y29jayx+ZGljayx+dGl0LH5ib29iLH5zZXgsfnR3YXQsfm51ZGUsfm5ha2VkLH53aG9yZSx+ZmFnLD1hc3MsPWFzc2VzLD1hcnNlLD1nYXksPWN1bSw9c3Vjayw9aGVsbCw9cmFwZSw9cmFwaXN0LD13dGYsPXN0ZnUsPW5hemksPWFuYWwsPW1pbGYsPXh4eCw9emViaSw9emJpLD16ZWJhayw9emJhayw9a29zaSw9a29zYWssPWtvc3NpLD1rb3MsPWZ1ayw9ZmNrLD1qaXp6LD1qaXosPdmD2YTYqCw92YPZhNio2YcsPdmD2YTYqNmDLD3in2YTZg9mE2Kg="),c=>c.charCodeAt(0))).split(",");
-const LEET={"0":"o","1":"i","3":"e","4":"a","5":"s","7":"t","8":"b","@":"a","$":"s","!":"i"};
-function pre(s){
-  s=String(s).toLowerCase().normalize("NFKD").replace(/[\u064B-\u065F\u0670\u0640\u200c-\u200f]/g,"");
-  s=s.replace(/[أإآٱ]/g,"ا").replace(/ى|ی/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/ک/g,"ك");
-  return s.replace(/[0134578@$!]/g,c=>LEET[c]);
-}
-const norm=s=>pre(s).replace(/(.)\1+/g,"$1");
-const LTR=/[^a-z\u0621-\u064A]/g,PRE="(?:ال|ب|ل|و|ف)?",SUF="(?:ي|ك|ه|ها|هم|كم|نا|ني|ات|ين|ون|ان)?",SUFE="(?:s|es|ed|er|ers|ing|in|y|ies|a|as|z|head)?";
-const BADN=BAD.map(w=>{const t=(w[0]==="="||w[0]==="~")?w[0]:"",c=norm(t?w.slice(1):w).replace(LTR,"");
-  let re=null;if(t==="~"){const ar=/[\u0621-\u064A]/.test(c);re=new RegExp("^"+(ar?PRE:"")+c+(ar?SUF:SUFE)+"$")}
-  return{w:c,t,re}});
-function isBad(name){
-  const n=norm(name),tok=n.split(/[^a-z\u0621-\u064A]+/).filter(Boolean),comp=n.replace(LTR,"");
-  if(tok.length>1&&tok.every(t=>t.length<2))tok.push(comp);
-  if(/nig{2,}(er|a|ah)/.test(pre(name).replace(/[^a-z]/g,"")))return true;
-  return BADN.some(o=>o.t==="="?tok.includes(o.w):o.t==="~"?tok.some(x=>o.re.test(x)):comp.includes(o.w));
-}
+const {isBad,nameError,norm,hid}=SuperFilter;
 
 /* [سؤال, [الخيارات], رقم الإجابة الصحيحة] */
 const BANK=[["ماذا يعني الاختصار AI؟",["الذكاء الاصطناعي","الواقع الافتراضي","إنترنت الأشياء","الحوسبة السحابية"],0,"AI اختصار Artificial Intelligence، أي الذكاء الاصطناعي: قدرة الآلات على تنفيذ مهام تتطلب ذكاءً بشرياً."],["أي لغة برمجة تُستخدم بكثرة في الذكاء الاصطناعي؟",["Python","Ruby","Swift","Pascal"],0,"بايثون هي الأكثر استخداماً في الذكاء الاصطناعي لسهولتها وتوفر مكتبات قوية مثل TensorFlow وPyTorch."],["ما اسم المركبة الجوالة التي هبطت على المريخ عام 2021؟",["Perseverance","Curiosity","Opportunity","Spirit"],0,"هبطت المركبة Perseverance على المريخ في فبراير 2021 للبحث عن علامات حياة قديمة، أما Curiosity فهبطت عام 2012."],["ماذا تعني IoT؟",["إنترنت الأشياء","نظام التشغيل","لغة البرمجة","شبكة الأقمار"],0,"IoT اختصار Internet of Things، أي ربط الأجهزة اليومية بالإنترنت لتتبادل البيانات."],["ما الجيل الذي يلي شبكات الجوال 4G؟",["5G","3G","2G","1G"],0,"5G هو الجيل الذي جاء بعد 4G، بسرعات أعلى وزمن استجابة أقل."],["الروبوت الذي يشبه جسم الإنسان يسمى؟",["روبوت بشري","روبوت صناعي","روبوت زاحف","روبوت طائر"],0,"الروبوت البشري (Humanoid) صُمّم ليشبه جسم الإنسان برأس وذراعين وساقين."],["أي مكوّن يحرّك مفاصل الروبوت؟",["المحركات","الحساسات","الكاميرات","البطاريات"],0,"المحركات (Actuators) تحوّل الطاقة إلى حركة، فتحرّك مفاصل الروبوت وأجزاءه."],["ما وظيفة الحساسات في الروبوت؟",["استشعار البيئة","تخزين الملفات","تبريد المعالج","تشغيل الشاشة"],0,"تجمع الحساسات معلومات عن البيئة كالمسافة والضوء والحرارة ليتصرف الروبوت بناءً عليها."],["أي من التالي لوحة تحكم إلكترونية شائعة في الروبوتات؟",["Arduino","Linux","Android","Windows"],0,"Arduino لوحة تحكم إلكترونية مفتوحة المصدر تُستخدم كثيراً في الروبوتات والمشاريع التعليمية، أما الباقي فأنظمة تشغيل."],["كيف تصنع الطابعة ثلاثية الأبعاد الأجسام؟",["إضافة طبقات","قص الألواح","نحت الخشب","حفر الصخور"],0,"تبني الطابعة ثلاثية الأبعاد الجسم بإضافة طبقات رقيقة فوق بعضها حتى يكتمل الشكل."],["أي مصدر من التالي يُعدّ طاقة متجددة؟",["طاقة الرياح","طاقة الفحم","طاقة النفط","طاقة الغاز"],0,"طاقة الرياح متجددة لأن الرياح لا تنفد، أما الفحم والنفط والغاز فوقود أحفوري ينفد مع الزمن."],["ماذا تعني VR؟",["الواقع الافتراضي","الواقع المعزز","الفيديو المباشر","الراديو المرئي"],0,"VR اختصار Virtual Reality، بيئة رقمية كاملة يدخلها المستخدم بنظارة، أما الواقع المعزز (AR) فيضيف عناصر رقمية إلى العالم الحقيقي."],["الطائرة الصغيرة التي تُقاد عن بُعد بدون طيار تسمى؟",["Drone","Router","Server","Cable"],0,"الدرون (Drone) طائرة بدون طيار تُقاد عن بُعد أو تطير بشكل آلي."],["ما الأرقام التي يعتمد عليها النظام الثنائي في الحاسوب؟",["0 و 1","1 و 2","0 و 9","1 و 10"],0,"يستخدم النظام الثنائي الرقمين 0 و1 فقط، وبهما يخزّن الحاسوب كل البيانات."],["ما أصغر وحدة لقياس المعلومات في الحاسوب؟",["البت","البايت","الكيلوبايت","الميغابايت"],0,"البت (Bit) أصغر وحدة معلومات في الحاسوب، وكل 8 بتات تساوي بايتاً واحداً."],["أي وحدة من التالي هي الأكبر في سعة التخزين؟",["تيرابايت","غيغابايت","ميغابايت","كيلوبايت"],0,"الترتيب من الأصغر إلى الأكبر: كيلوبايت، ثم ميغابايت، ثم غيغابايت، ثم تيرابايت."],["ما هدف الأمن السيبراني؟",["حماية البيانات","تسريع الإنترنت","صناعة الألعاب","تصميم الشعارات"],0,"يحمي الأمن السيبراني البيانات والأنظمة من الاختراق والتخريب والسرقة."],["ما الذي يساعد السيارة ذاتية القيادة على رؤية الطريق؟",["الكاميرات والرادار","المذياع والهوائي","البوصلة والخريطة","الطابعة والشاشة"],0,"ترى السيارة ذاتية القيادة الطريق عبر الكاميرات والرادار، ويحلل الذكاء الاصطناعي ما تلتقطه."],["من الكاتب الذي ظهرت في مسرحيته كلمة «روبوت» لأول مرة عام 1920؟",["كاريل تشابيك","إسحاق أسيموف","جول فيرن","أرثر كلارك"],0,"ظهرت كلمة «روبوت» أول مرة في مسرحية R.U.R. للكاتب التشيكي كاريل تشابيك عام 1920."],["أين تُخزَّن البيانات في الحوسبة السحابية؟",["خوادم بعيدة","ذاكرة الهاتف","قرص صلب","بطاقة ذاكرة"],0,"في الحوسبة السحابية تُخزَّن البيانات وتُعالَج على خوادم بعيدة نصل إليها عبر الإنترنت."],["ماذا نسمّي تعلّم الآلة من البيانات دون برمجة كل خطوة؟",["التعلّم الآلي","التشفير الآلي","التصنيع الآلي","التصحيح الآلي"],0,"التعلّم الآلي (Machine Learning) يجعل الآلة تتعلم الأنماط من البيانات بدل أن نبرمج كل خطوة."],["ما لغة المتصفح الأساسية لجعل صفحات الويب تفاعلية؟",["JavaScript","Python","Pascal","Fortran"],0,"جافاسكربت (JavaScript) هي لغة المتصفح الأساسية التي تجعل صفحات الويب تفاعلية."],["ما استخدام نظام GPS؟",["تحديد الموقع","تحديد الوزن","تحديد الصوت","تحديد الحرارة"],0,"GPS نظام ملاحة عبر الأقمار الصناعية يحدد الموقع الجغرافي بدقة."],["أي كوكب يتصدّر خطط الاستيطان المستقبلية؟",["المريخ","عطارد","نبتون","زحل"],0,"المريخ من أبرز أهداف خطط الاستكشاف والاستيطان المستقبلية لقربه النسبي من الأرض."]];
@@ -133,13 +118,14 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const TOTAL=10,SEC=20,LET=["أ","ب","ج","د"];
 
 /* ===== التخزين: مباشر عبر db إن توفّر، وإلا على هذا الجهاز ===== */
-let live=false,mem=[],APW="super2026";
+let live=false,mem=[],APH="";
 async function api(method,body,admin){
-  const r=await fetch("/api/lb",{method,headers:{"content-type":"application/json",...(admin?{"x-admin":APW}:{})},body:body?JSON.stringify(body):undefined});
-  if(!r.ok)throw new Error(r.status);return r.json();
+  const r=await fetch("/api/lb"+(method==="GET"?"?t="+Date.now():""),{method,cache:"no-store",headers:{"content-type":"application/json",...(admin?{"x-admin":APH}:{})},body:body?JSON.stringify(body):undefined});
+  let d=null;try{d=await r.json()}catch(e){}
+  if(!r.ok||d===null){const e=new Error((d&&d.error)||r.status);e.status=r.status;e.code=d&&d.error;throw e}
+  return d;
 }
 setTimeout(()=>{loadBoard();setInterval(()=>{if(!$("home").classList.contains("hide"))loadBoard()},15000)},0);
-const hid=s=>{let h=5381;for(const c of s)h=(h*33^c.charCodeAt(0))>>>0;return "p"+h.toString(36)};
 function localGet(){try{return JSON.parse(localStorage.getItem("youth_lb")||"[]")}catch(e){return mem}}
 function localSet(a){mem=a;try{localStorage.setItem("youth_lb",JSON.stringify(a))}catch(e){}}
 const rows=a=>a.sort((x,y)=>y.score-x.score||x.time-y.time);
@@ -149,9 +135,10 @@ async function getBoard(){
 }
 async function saveScore(r){
   const id=hid(norm(r.name)); let saved=false;
-  try{await api("POST",{action:"score",name:r.name,score:r.score,time:r.time,ok:r.ok});saved=true;live=true}catch(e){live=false}
+  try{await api("POST",{action:"score",name:r.name,score:r.score,time:r.time,ok:r.ok});saved=true;live=true}catch(e){if(e.status===422)return false;live=false}
   if(!saved){const a=localGet(),i=a.findIndex(x=>x.id===id);r.id=id;
     if(i<0)a.push(r);else if(a[i].score<r.score||(a[i].score===r.score&&a[i].time>r.time))a[i]=r;localSet(a)}
+  return true;
 }
 function drawBoard(el,list,me,n){
   el.innerHTML="";
@@ -168,13 +155,11 @@ async function loadBoard(){drawBoard($("lbHome"),await getBoard(),null,5)}
 /* ===== اللعبة ===== */
 let G;
 function cleanName(v){return v.replace(/\s+/g," ").trim()}
+const NAME_MSG={bad_length:"الرجاء كتابة اسمك (حرفان على الأقل).",bad_chars:"يُسمح بالحروف والأرقام والمسافات فقط.",bad_contact:"لا يُسمح بكتابة أرقام هاتف أو روابط في الاسم.",bad_name:"هذا الاسم غير لائق، الرجاء اختيار اسم آخر."};
 $("name").addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click()});
 $("go").onclick=()=>{
-  const name=cleanName($("name").value);
-  if(name.length<2)return $("err").textContent="الرجاء كتابة اسمك (حرفان على الأقل).";
-  if(!/^[\p{L}\p{N} _\-.]+$/u.test(name))return $("err").textContent="يُسمح بالحروف والأرقام والمسافات فقط.";
-  if(/\d{5,}/.test(name.replace(/[\s\-_.]/g,""))||/(www|http|\.com|\.net|\.ly|t\.me)/i.test(name))return $("err").textContent="لا يُسمح بكتابة أرقام هاتف أو روابط في الاسم.";
-  if(isBad(name))return $("err").textContent="هذا الاسم غير لائق، الرجاء اختيار اسم آخر.";
+  const name=cleanName($("name").value),bad=nameError(name);
+  if(bad)return $("err").textContent=NAME_MSG[bad];
   $("err").textContent="";
   G={name,i:0,score:0,ok:0,streak:0,time:0,qs:shuffle(shuffle(TEAM).slice(0,2).concat(shuffle(BANK).slice(0,TOTAL-2))).map(q=>{const o=shuffle(q[1].map((t,k)=>[t,k===q[2]]));return{t:q[0],o,e:q[3]}})};
   show("game");ask();
@@ -212,7 +197,8 @@ async function finish(){
   show("end");$("who").textContent=G.name;$("fin").textContent=G.score;
   $("ttl").textContent=(TITLES.find(t=>G.score>=t[0])||TITLES[3])[1]+" — "+G.ok+" من "+TOTAL+" إجابات صحيحة";
   $("rk").textContent="جارٍ حساب ترتيبك…";
-  await saveScore({name:G.name,score:G.score,time:Math.round(G.time*10)/10,ok:G.ok,at:Date.now()});
+  const saved=await saveScore({name:G.name,score:G.score,time:Math.round(G.time*10)/10,ok:G.ok,at:Date.now()});
+  if(!saved){$("rk").textContent="تعذّر حفظ نتيجتك: الاسم غير مقبول.";drawBoard($("lbEnd"),await getBoard(),null,10);return}
   const b=await getBoard(),pos=b.findIndex(r=>norm(r.name)===norm(G.name))+1;
   $("rk").textContent=pos?"ترتيبك: "+pos+" من "+b.length:"";
   drawBoard($("lbEnd"),b,G.name,10);
@@ -220,69 +206,96 @@ async function finish(){
 }
 $("again").onclick=()=>{$("name").value="";show("home");loadBoard()};
 
-/* ===== لوحة المشرف (#admin) ===== */
+/* ===== لوحة المشرف (الرابط + #admin) ===== */
+// بصمة SHA-256 لكلمة السر (تُستخدم فقط عند عدم توفر الخادم). الخادم هو المرجع عند توفره.
+const AH="9a0ee89e00a006877eca0c28eebeb38aa301469b9cce8012b6ee04b13079a7e8";
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,"0")).join("");
+function adminErr(e){
+  if(e&&e.status===401)return "كلمة السر غير مقبولة من الخادم. سجّل الخروج ثم ادخل من جديد.";
+  if(e&&e.status===404)return "هذا المشترك لم يعد موجوداً.";
+  if(e&&NAME_MSG[e.code])return NAME_MSG[e.code];
+  return "تعذّرت العملية، تأكد من الاتصال ثم حاول مرة أخرى.";
+}
 async function delEntry(r){
-  if(live){
-    try{
-      const res = await api("POST",{action:"delete",id:r.id},true);
-      if(res && res.ok){ await renderAdmin(); return; }
-    }catch(e){}
-  }
+  if(live){await api("POST",{action:"delete",id:r.id},true);return}
   localSet(localGet().filter(x=>x.id!==r.id));
-  await renderAdmin();
 }
-
 async function renameEntry(r,name){
-  const nid=hid(norm(name)),d={name,score:r.score,time:r.time,ok:r.ok,at:r.at};
-  if(live){
-    try{
-      const res = await api("POST",{action:"rename",id:r.id,name},true);
-      if(res && res.ok){ await renderAdmin(); return; }
-    }catch(e){}
-  }
-  d.id=nid;localSet(localGet().filter(x=>x.id!==r.id&&x.id!==nid).concat([d]));
-  await renderAdmin();
+  const bad=nameError(name);if(bad){const e=new Error(bad);e.code=bad;throw e}
+  if(live){await api("POST",{action:"rename",id:r.id,name},true);return}
+  const a=localGet(),nid=hid(norm(name)),cur=a.find(x=>x.id===r.id)||r,other=a.find(x=>x.id===nid&&x.id!==r.id);
+  let d={...cur,name,id:nid};
+  if(other&&(other.score>d.score||(other.score===d.score&&other.time<=d.time)))d={...other,name};
+  localSet(a.filter(x=>x.id!==r.id&&x.id!==nid).concat([d]));
 }
-
 async function renderAdmin(){
   const el=$("alist"),b=await getBoard();el.innerHTML="";
   $("acount").textContent="("+b.length+") "+(live?"مباشر":"محفوظ على هذا الجهاز");
   if(!b.length){el.textContent="لا يوجد مشتركون.";return}
+  const run=async f=>{try{await f();$("amsg").textContent="";await renderAdmin()}catch(e){$("amsg").textContent=adminErr(e)}};
   b.forEach(r=>{
-    const row=document.createElement("div");row.className="ar";
+    const row=document.createElement("div");row.className="ar"+(isBad(r.name)?" flag":"");
     const nm=document.createElement("span");nm.textContent=r.name+" — "+r.score;
+    if(isBad(r.name)){const t=document.createElement("span");t.className="tag";t.textContent="غير لائق";nm.append(t)}
     const mk=(t,c,f)=>{const x=document.createElement("button");x.textContent=t;if(c)x.className=c;x.onclick=f;return x};
     const box=(...k)=>{const a=document.createElement("div");a.className="ab";a.append(...k);return a};
-    const normal=()=>row.replaceChildren(nm,box(mk("تعديل","",edit),mk("حذف","dl",ask)));
+    const normal=()=>row.replaceChildren(nm,box(mk("تعديل","",edit),mk("حذف","dl",del)));
     const edit=()=>{const i=document.createElement("input");i.value=r.name;i.maxLength=20;
-      row.replaceChildren(i,box(mk("حفظ","",async()=>{const v=cleanName(i.value);if(v.length<2)return;await renameEntry(r,v)}),mk("إلغاء","",normal)))};
-    const ask=()=>{const t=document.createElement("span");t.textContent="حذف "+r.name+"؟";
-      row.replaceChildren(t,box(mk("تأكيد","dl",async()=>{await delEntry(r)}),mk("إلغاء","",normal)))};
+      const save=()=>run(()=>renameEntry(r,cleanName(i.value)));
+      i.addEventListener("keydown",e=>{if(e.key==="Enter")save()});
+      row.replaceChildren(i,box(mk("حفظ","",save),mk("إلغاء","",()=>{$("amsg").textContent="";normal()})));i.focus()};
+    const del=()=>{const t=document.createElement("span");t.textContent="حذف "+r.name+"؟";
+      row.replaceChildren(t,box(mk("تأكيد","dl",()=>run(()=>delEntry(r))),mk("إلغاء","",normal)))};
     normal();el.append(row);
   });
 }
-
-function route(){if(location.hash==="#admin"){show("admin");$("alog").classList.remove("hide");$("apanel").classList.add("hide");$("apw").value="";$("aerr").textContent=""}}
+function route(){if(location.hash==="#admin"){show("admin");$("alog").classList.remove("hide");$("apanel").classList.add("hide");$("apw").value="";$("aerr").textContent="";$("amsg").textContent="";APH=""}}
 addEventListener("hashchange",route);route();
-
 $("alogin").onclick=async()=>{
-  const val = $("apw").value;
-  if(val !== "super123" && val !== "super2026") return $("aerr").textContent="كلمة السر غير صحيحة.";
-  APW = "super2026"; // استخدام المפתח الخاص بالمصادقة للـ Netlify Function
-  $("alog").classList.add("hide");
-  $("apanel").classList.remove("hide");
-  await renderAdmin();
+  const btn=$("alogin");if(btn.disabled)return;btn.disabled=true;$("aerr").textContent="";
+  try{
+    const h=await sha($("apw").value);APH=h;let ok=false;
+    try{await api("POST",{action:"auth"},true);ok=true;live=true}
+    catch(e){if(e.status===401)ok=false;else ok=(h===AH)}   // الخادم غير متاح: نعتمد البصمة المحلية
+    if(!ok){APH="";return $("aerr").textContent="كلمة السر غير صحيحة."}
+    $("apw").value="";$("alog").classList.add("hide");$("apanel").classList.remove("hide");await renderAdmin();
+  }catch(e){$("aerr").textContent="تعذّر التحقق من كلمة السر."}
+  finally{btn.disabled=false}
+};
+$("apw").addEventListener("keydown",e=>{if(e.key==="Enter")$("alogin").click()});
+$("aexit").onclick=()=>{APH="";try{location.hash=""}catch(e){}show("home");loadBoard()};
+
+// حذف كل الأسماء غير اللائقة دفعة واحدة (ضغطتان للتأكيد)
+let pg=0;$("apurge").onclick=async()=>{
+  if(!pg){pg=1;$("apurge").textContent="اضغط مرة ثانية لحذف غير اللائق";setTimeout(()=>{pg=0;$("apurge").textContent="حذف الأسماء غير اللائقة"},4000);return}
+  pg=0;$("apurge").textContent="حذف الأسماء غير اللائقة";
+  try{
+    if(live)await api("POST",{action:"purge"},true);
+    else localSet(localGet().filter(x=>!isBad(x.name)));
+    $("amsg").textContent="";await renderAdmin();
+  }catch(e){$("amsg").textContent=adminErr(e)}
 };
 
-$("apw").addEventListener("keydown",e=>{if(e.key==="Enter")$("alogin").click()});
-$("aexit").onclick=()=>{try{location.hash=""}catch(e){}show("home");loadBoard()};
-
-let rs=0;
-$("areset").onclick=async()=>{
+// تصفير اللوحة (ضغطتان للتأكيد) — عملية واحدة على الخادم
+let rs=0;$("areset").onclick=async()=>{
   if(!rs){rs=1;$("areset").textContent="اضغط مرة ثانية لحذف الجميع";setTimeout(()=>{rs=0;$("areset").textContent="تصفير اللوحة"},4000);return}
   rs=0;$("areset").textContent="تصفير اللوحة";
-  for(const r of await getBoard()) await delEntry(r);
-  await renderAdmin();
+  try{
+    if(live)await api("POST",{action:"reset"},true);else localSet([]);
+    $("amsg").textContent="";await renderAdmin();
+  }catch(e){$("amsg").textContent=adminErr(e)}
+};
+
+// تغيير كلمة السر (يُحفظ على الخادم كبصمة فقط)
+$("apwbtn").onclick=()=>{$("apwbox").classList.toggle("hide");$("apw2").value=""};
+$("apwsave").onclick=async()=>{
+  const v=$("apw2").value;
+  if(v.length<6)return $("amsg").textContent="كلمة السر الجديدة قصيرة (6 أحرف على الأقل).";
+  if(!live)return $("amsg").textContent="تغيير كلمة السر متاح فقط عند الاتصال بالخادم.";
+  try{
+    const h=await sha(v);await api("POST",{action:"setpw",hash:h},true);APH=h;
+    $("apwbox").classList.add("hide");$("apw2").value="";$("amsg").textContent="تم تغيير كلمة السر بنجاح.";
+  }catch(e){$("amsg").textContent=adminErr(e)}
 };
 </script>
 </body>
