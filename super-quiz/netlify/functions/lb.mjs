@@ -1,7 +1,12 @@
 import { getStore } from "@netlify/blobs";
-import { createHash } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
+import "../../filter.js"; // نفس فلتر الصفحة (يضع SuperFilter في globalThis)
 
-const ADMIN_HASH = "6e61a9bbd74f6520c8c5c95fa1a0e64a4676cd8945187481b56c85c2c0d1ca01";
+const F = globalThis.SuperFilter;
+
+// بصمة SHA-256 لكلمة السر (الافتراضية: super2026). الصفحة ترسل البصمة في ترويسة x-admin.
+// تُغيَّر من زر «تغيير كلمة السر» في لوحة المشرف، أو بمتغير البيئة ADMIN_HASH.
+const DEFAULT_HASH = "9a0ee89e00a006877eca0c28eebeb38aa301469b9cce8012b6ee04b13079a7e8";
 const MAX_SCORE = 2000; // 10 أسئلة × (100 + 50 + 50) كحد أقصى
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -9,74 +14,127 @@ const json = (data, status = 200) =>
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 
+// نفس طريقة بناء المفاتيح السابقة تماماً حتى تبقى النتائج الحالية ظاهرة
 const hid = (s) => {
   let h = 5381;
   for (const c of s) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
   return "p" + h.toString(36);
 };
 const normName = (s) => String(s).toLowerCase().replace(/\s+/g, " ").trim();
-const cleanName = (s) => String(s || "").replace(/\s+/g, " ").trim();
-const nameOk = (n) =>
-  n.length >= 2 && n.length <= 20 &&
-  /^[\p{L}\p{N} _\-.]+$/u.test(n) &&
-  !/\d{5,}/.test(n.replace(/[\s\-_.]/g, "")) &&
-  !/(www|http|\.com|\.net|\.ly|t\.me)/i.test(n);
-const isAdmin = (req) =>
-  createHash("sha256").update(req.headers.get("x-admin") || "").digest("hex") === ADMIN_HASH;
 const better = (a, b) => a.score > b.score || (a.score === b.score && a.time < b.time);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const store = () => getStore({ name: "leaderboard", consistency: "strong" });
+const conf = () => getStore({ name: "super-config", consistency: "strong" });
+
+async function adminHash() {
+  try {
+    const h = await conf().get("admin-hash");
+    if (h && /^[0-9a-f]{64}$/.test(h.trim())) return h.trim();
+  } catch {}
+  return String(process.env.ADMIN_HASH || DEFAULT_HASH).trim().toLowerCase();
+}
+async function isAdmin(req) {
+  const h = (req.headers.get("x-admin") || "").trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(h)) return false;
+  return timingSafeEqual(Buffer.from(h), Buffer.from(await adminHash()));
+}
+
+async function readAll(st, limit) {
+  const { blobs } = await st.list();
+  const items = await Promise.all(
+    (limit ? blobs.slice(0, limit) : blobs).map(async (b) => {
+      const v = await st.get(b.key, { type: "json" }).catch(() => null);
+      return v && v.name ? { ...v, id: b.key } : null;
+    })
+  );
+  return items.filter(Boolean);
+}
 
 export default async (req) => {
-  const store = getStore({ name: "leaderboard", consistency: "strong" });
+  try {
+    const st = store();
 
-  if (req.method === "GET") {
-    const { blobs } = await store.list();
-    const items = await Promise.all(
-      blobs.slice(0, 300).map(async (b) => {
-        const v = await store.get(b.key, { type: "json" });
-        return v ? { ...v, id: b.key } : null;
-      })
-    );
-    const list = items
-      .filter(Boolean)
-      .sort((x, y) => y.score - x.score || x.time - y.time)
-      .slice(0, 100);
-    return json(list);
+    if (req.method === "GET") {
+      const list = (await readAll(st, 300))
+        .sort((x, y) => y.score - x.score || x.time - y.time)
+        .slice(0, 100);
+      return json(list);
+    }
+
+    if (req.method !== "POST") return json({ error: "method" }, 405);
+    let body;
+    try { body = await req.json(); } catch { return json({ error: "bad json" }, 400); }
+
+    if (body.action === "score") {
+      const name = F.cleanName(body.name);
+      const err = F.nameError(name);               // الطول + الرموز + الروابط + الألفاظ البذيئة
+      if (err) return json({ error: err }, 422);
+      const score = Number(body.score), time = Number(body.time), ok = Number(body.ok);
+      if (!Number.isFinite(score) || score < 0 || score > MAX_SCORE) return json({ error: "score" }, 400);
+      if (!Number.isFinite(time) || time < 0 || time > 300) return json({ error: "time" }, 400);
+      const rec = { name, score: Math.round(score), time: Math.round(time * 10) / 10, ok: Math.max(0, Math.min(10, ok | 0)), at: Date.now() };
+      const id = hid(normName(name));
+      const old = await st.get(id, { type: "json" }).catch(() => null);
+      if (!old || better(rec, old)) await st.setJSON(id, rec);
+      return json({ saved: true });
+    }
+
+    // ---- كل ما بعده يحتاج كلمة سر المشرف ----
+    if (!["auth", "delete", "rename", "reset", "purge", "setpw"].includes(body.action)) return json({ error: "action" }, 400);
+    if (!(await isAdmin(req))) { await sleep(400); return json({ error: "auth" }, 401); }
+
+    if (body.action === "auth") return json({ ok: true });
+
+    if (body.action === "delete") {
+      if (!body.id) return json({ error: "id" }, 400);
+      await st.delete(String(body.id));
+      return json({ ok: true });
+    }
+
+    if (body.action === "rename") {
+      const name = F.cleanName(body.name);
+      const err = F.nameError(name);
+      if (err) return json({ error: err }, 422);
+      const oid = String(body.id || "");
+      const old = oid && (await st.get(oid, { type: "json" }).catch(() => null));
+      if (!old) return json({ error: "missing" }, 404);
+      const nid = hid(normName(name));
+      let rec = { ...old, name };
+      if (nid !== oid) {
+        // إن كان الاسم الجديد موجوداً نُبقي الأفضل بدل أن نمسح نتيجة أحدهما
+        const other = await st.get(nid, { type: "json" }).catch(() => null);
+        if (other && better(other, rec)) rec = { ...other, name };
+        await st.delete(oid);
+      }
+      await st.setJSON(nid, rec);
+      return json({ ok: true });
+    }
+
+    if (body.action === "reset") {
+      const rows = await readAll(st);
+      await Promise.all(rows.map((r) => st.delete(r.id)));
+      return json({ ok: true, removed: rows.length });
+    }
+
+    if (body.action === "purge") {
+      const rows = (await readAll(st)).filter((r) => F.isBad(r.name));
+      await Promise.all(rows.map((r) => st.delete(r.id)));
+      return json({ ok: true, removed: rows.length });
+    }
+
+    if (body.action === "setpw") {
+      const h = String(body.hash || "").trim().toLowerCase();
+      if (!/^[0-9a-f]{64}$/.test(h)) return json({ error: "bad_hash" }, 400);
+      await conf().set("admin-hash", h);
+      return json({ ok: true });
+    }
+
+    return json({ error: "action" }, 400);
+  } catch (e) {
+    console.error("lb error", e);
+    return json({ error: "server" }, 500);
   }
-
-  if (req.method !== "POST") return json({ error: "method" }, 405);
-  let body;
-  try { body = await req.json(); } catch { return json({ error: "bad json" }, 400); }
-
-  if (body.action === "score") {
-    const name = cleanName(body.name);
-    const score = Number(body.score), time = Number(body.time), ok = Number(body.ok);
-    if (!nameOk(name)) return json({ error: "name" }, 400);
-    if (!Number.isFinite(score) || score < 0 || score > MAX_SCORE) return json({ error: "score" }, 400);
-    if (!Number.isFinite(time) || time < 0 || time > 300) return json({ error: "time" }, 400);
-    const rec = { name, score: Math.round(score), time: Math.round(time * 10) / 10, ok: Math.max(0, Math.min(10, ok | 0)), at: Date.now() };
-    const id = hid(normName(name));
-    const old = await store.get(id, { type: "json" });
-    if (!old || better(rec, old)) await store.setJSON(id, rec);
-    return json({ saved: true });
-  }
-
-  if (!isAdmin(req)) return json({ error: "auth" }, 401);
-
-  if (body.action === "delete") {
-    await store.delete(String(body.id));
-    return json({ ok: true });
-  }
-  if (body.action === "rename") {
-    const name = cleanName(body.name);
-    if (!nameOk(name)) return json({ error: "name" }, 400);
-    const old = await store.get(String(body.id), { type: "json" });
-    if (!old) return json({ error: "missing" }, 404);
-    const nid = hid(normName(name));
-    await store.setJSON(nid, { ...old, name });
-    if (nid !== body.id) await store.delete(String(body.id));
-    return json({ ok: true });
-  }
-  return json({ error: "action" }, 400);
 };
 
 export const config = { path: "/api/lb" };
