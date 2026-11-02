@@ -40,6 +40,34 @@ async function isAdmin(req) {
   return timingSafeEqual(Buffer.from(h), Buffer.from(await adminHash()));
 }
 
+// ---- قائمة الكلمات المحظورة التي يضيفها المشرف (تُحفظ في super-config/blocklist) ----
+const MODES = ["auto", "s", "a", "e"];
+function cleanWords(v) {
+  const seen = new Set(), block = [], allow = [];
+  for (const it of Array.isArray(v && v.block) ? v.block : []) {
+    const w = String((it && it.w) ?? it ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
+    const m = MODES.includes(it && it.m) ? it.m : "auto";
+    const k = w.toLowerCase() + "|" + m;
+    if (w.length < 2 || seen.has(k) || block.length >= 3000) continue;
+    seen.add(k); block.push({ w, m });
+  }
+  const seenA = new Set();
+  for (const n of Array.isArray(v && v.allow) ? v.allow : []) {
+    const w = String(n ?? "").replace(/\s+/g, " ").trim().slice(0, 30);
+    if (w.length < 2 || seenA.has(w.toLowerCase()) || allow.length >= 500) continue;
+    seenA.add(w.toLowerCase()); allow.push(w);
+  }
+  return { block, allow };
+}
+let WCACHE = null, WAT = 0;
+async function loadWords() {
+  if (WCACHE && Date.now() - WAT < 10000) return WCACHE;
+  let w = { block: [], allow: [] };
+  try { const v = await conf().get("blocklist", { type: "json" }); if (v) w = cleanWords(v); } catch {}
+  WCACHE = w; WAT = Date.now();
+  return w;
+}
+
 async function readAll(st, limit) {
   const { blobs } = await st.list();
   const items = await Promise.all(
@@ -66,6 +94,14 @@ export default async (req) => {
     let body;
     try { body = await req.json(); } catch { return json({ error: "bad json" }, 400); }
 
+    F.setCustom(await loadWords());                // قائمة المشرف + القائمة المدمجة
+
+    // فحص الاسم قبل بدء الاختبار (لا يكشف القائمة للزوار)
+    if (body.action === "check") {
+      const err = F.nameError(F.cleanName(body.name));
+      return err ? json({ error: err }, 422) : json({ ok: true });
+    }
+
     if (body.action === "score") {
       const name = F.cleanName(body.name);
       const err = F.nameError(name);               // الطول + الرموز + الروابط + الألفاظ البذيئة
@@ -81,7 +117,7 @@ export default async (req) => {
     }
 
     // ---- كل ما بعده يحتاج كلمة سر المشرف ----
-    if (!["auth", "delete", "rename", "reset", "purge", "setpw"].includes(body.action)) return json({ error: "action" }, 400);
+    if (!["auth", "delete", "rename", "reset", "purge", "setpw", "words_get", "words_set"].includes(body.action)) return json({ error: "action" }, 400);
     if (!(await isAdmin(req))) { await sleep(400); return json({ error: "auth" }, 401); }
 
     if (body.action === "auth") return json({ ok: true });
@@ -121,6 +157,15 @@ export default async (req) => {
       const rows = (await readAll(st)).filter((r) => F.isBad(r.name));
       await Promise.all(rows.map((r) => st.delete(r.id)));
       return json({ ok: true, removed: rows.length });
+    }
+
+    if (body.action === "words_get") return json(await loadWords());
+
+    if (body.action === "words_set") {
+      const w = cleanWords({ block: body.block, allow: body.allow });
+      await conf().setJSON("blocklist", w);
+      WCACHE = w; WAT = Date.now();
+      return json({ ok: true, ...w });
     }
 
     if (body.action === "setpw") {
