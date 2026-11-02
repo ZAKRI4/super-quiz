@@ -45,45 +45,82 @@
   }
 
   /* حرف مكرر في الكلمة المحجوبة = يقبل أي تكرار (كسسسمك ، fuuuck) */
-  function pat(w) {
-    let o = "", i = 0;
-    while (i < w.length) {
-      let j = i; while (j < w.length && w[j] === w[i]) j++;
-      const n = j - i; o += w[i] + (n > 1 ? "{" + n + ",}" : "+"); i = j;
-    }
-    return o;
+  function runs(w) {
+    const r = []; let i = 0;
+    while (i < w.length) { let j = i; while (j < w.length && w[j] === w[i]) j++; r.push([w[i], j - i]); i = j; }
+    return r;
   }
+  const runPat = function (r) { return r[0] + (r[1] > 1 ? "{" + r[1] + ",}" : "+"); };
+  const pat = function (w) { return runs(w).map(runPat).join(""); };
   const clean = function (w) { return base(w).replace(/[^a-z0-9\u0621-\u064A]/g, ""); };
+
+  /* نمط "الحجب في أي موضع": يتحمّل حروفاً زائدة بين حروف الكلمة
+       عربي  : حروف مدّ/لاتينية (حتى 2) ، ومع الكلمات 5 أحرف فأكثر يقبل أيضاً حرفاً عربياً زائداً (قححخبة)
+       إنجليزي: حرف علّة/h/x زائد بين الحروف للكلمات 5 أحرف فأكثر (fuuck ، biatch) */
+  function loose(c, ar) {
+    const r = runs(c).map(runPat);
+    if (ar && c.length >= 4) return r.join(c.length >= 5 ? "(?:[اويa-z]{0,2}|[\\u0621-\\u064A])" : "[اويa-z]{0,2}");
+    if (!ar && !/[0-9]/.test(c) && c.length >= 5) return r.join("[aeiouyhx]?");
+    return r.join("");
+  }
 
   /* ---------- لواحق وبادئات ---------- */
   const PRE = "(?:ويا|يا|وال|بال|فال|كال|لل|ال|ب|ل|و|ف|ك)?";
   const SUFP = "(?:ها|هم|كم|كن|هن|نا|ني|ي|ك|ه)?";
   const SUFA = "(?:ها|هم|كم|كن|هن|نا|ني|ات|ين|ون|ان|تك|تي|تها|ته|تهم|ي|ك|ه|ا|و)?";
   const SUFE = "(?:s|es|ed|er|ers|ing|in|y|ies|z|zz|head|face|hole)?";
+  const PREL = "(?:ya|yaa|ye|el|al|il|wel|w)?";                      // عربيزي: ya kos ، elkos
+  const SUFL = "(?:i|a|ah|ak|ek|ik|ha|kom|hom|na|ek|ki)?";
   const AR = /[\u0621-\u064A]/;
 
   /* مجموعتان: N = بدون أرقام (تُفحص بعد تحويل الأرقام) ، D = عربيزي بأرقام (3ars ، ka7ba) */
-  const G = { N: { plain: [], tok: [] }, D: { plain: [], tok: [] } };
-  function add(tier, w, tail) {
+  const mkG = function () { return { N: { plain: [], tok: [] }, D: { plain: [], tok: [] } }; };
+  const G = mkG();           // القائمة المدمجة
+  let CG = mkG();            // قائمة المشرف (تُبنى من setCustom)
+  let CALLOW = {};           // أسماء يسمح بها المشرف
+  let CUSTOM = { block: [], allow: [] };
+  const LIST = [];           // للعرض في لوحة المشرف فقط
+
+  function compile(tier, c, tail) {
+    const ar = AR.test(c), t = tail || "";
+    if (tier === "S") return { plain: true, re: new RegExp(loose(c, ar) + t) };
+    const p = pat(c) + t; let s;
+    if (tier === "E") s = p;
+    else if (tier === "R") s = (ar ? PRE : "") + p;
+    else if (tier === "P") s = ar ? PRE + p + SUFP : p + SUFE;
+    else if (tier === "A") s = ar ? PRE + p + SUFA : p + SUFE;
+    else if (tier === "L") s = ar ? PRE + p + SUFA : PREL + p + SUFL;
+    else return null;
+    return { re: new RegExp("^" + s + "$") };
+  }
+  function add(tier, w, tail, GG, noList) {
+    GG = GG || G;
     const c = clean(w); if (!c) return;
-    const g = /[0-9]/.test(c) ? G.D : G.N, ar = AR.test(c), p = pat(c) + (tail || "");
-    if (tier === "S") g.plain.push(new RegExp(p));
-    else if (tier === "E") g.tok.push(new RegExp("^" + p + "$"));
-    else if (tier === "R") g.tok.push(new RegExp("^" + (ar ? PRE : "") + p + "$"));
-    else if (tier === "P") g.tok.push(new RegExp("^" + (ar ? PRE + p + SUFP : p + SUFE) + "$"));
-    else if (tier === "A") g.tok.push(new RegExp("^" + (ar ? PRE + p + SUFA : p + SUFE) + "$"));
+    const vs = [c];
+    // من يكتب القاف كافاً (قحبة ← كحبة) في الكلمات الطويلة
+    if (tier === "S" && AR.test(c) && c.length >= 4 && c.indexOf("ق") > -1) vs.push(c.replace(/ق/g, "ك"));
+    vs.forEach(function (v) {
+      const o = compile(tier, v, tail); if (!o) return;
+      const g = /[0-9]/.test(v) ? GG.D : GG.N;
+      g[o.plain ? "plain" : "tok"].push({ re: o.re, w: w });
+      // كلمة من 4 أحرف: نقبل حرفاً زائداً من أي نوع (قحخبة) لكن داخل الكلمة الواحدة فقط حتى لا نخلط كلمتين متجاورتين
+      if (tier === "S" && AR.test(v) && v.length === 4 && !/[0-9]/.test(v))
+        g.tok.push({ re: new RegExp(runs(v).map(runPat).join("(?:[اويa-z]{0,2}|[\\u0621-\\u064A])")), w: w });
+    });
+    if (!noList && GG === G) LIST.push({ w: String(w), t: tier });
   }
   const addAll = function (tier, list) { list.forEach(function (w) { add(tier, w); }); };
 
   /* توليد "ابن/بنت/ولد ... + الكلب/الحرام/القحبة ..." دفعة واحدة */
   function combo(rels, arts, tails) {
+    LIST.push({ t: "C", w: rels.join(" / ") + "  +  " + tails.map(function (x) { return Array.isArray(x) ? x[0] : x; }).join(" / ") });
     [false, true].forEach(function (dig) {
       const t = tails.filter(function (x) { return /[0-9]/.test(clean(x[0] || x)) === dig; });
       if (!t.length) return;
       const r = "(?:" + rels.map(function (x) { return pat(clean(x)); }).join("|") + ")";
       const a = "(?:" + arts.map(function (x) { return pat(clean(x)); }).join("|") + ")?";
       const tl = "(?:" + t.map(function (x) { return Array.isArray(x) ? pat(clean(x[0])) + x[1] : pat(clean(x)); }).join("|") + ")";
-      (dig ? G.D : G.N).plain.push(new RegExp(r + a + tl));
+      (dig ? G.D : G.N).plain.push({ re: new RegExp(r + a + tl), w: "عبارة نسب (ابن/بنت + شتيمة)" });
     });
   }
 
@@ -186,35 +223,132 @@
       "sharmouta", "sharmoota", "manyouk", "manyak", "3ahra", "3ahira", "wsikha", "wasikha", "khawal", "5awal", "dayouth"]
   );
 
-  /* أسماء مسموحة بالاسم الكامل حتى لو أثارت الفلتر (أضف هنا أي اسم بريء يُحجب بالخطأ) */
+
+  /* =====================================================================
+     إضافات موسّعة (لهجة ليبية + عربي + إنجليزي + عربيزي)
+     ===================================================================== */
+  addAll("S", [
+    "كسمكم", "كسامكم", "كسمها", "كسمهم", "كسراسك", "كسراسو", "كسامين", "كسامه", "كسعرضك", "كسخلقك",
+    "دينربك", "دينربي", "دينراسك", "دينجدك", "دينعرضك", "دينامه", "دينامها", "دينخلقك",
+    "يلعنابو", "يلعنامك", "يلعندين", "يلعنربك", "يلعنخلقك", "يلعنوالد", "يلعنعرض", "يلعنراس",
+    "نيكامك", "نيكاختك", "نيكربك", "نيكعرضك", "نيكخلقك", "نيكابوك", "نيكراسك", "نيكمكم",
+    "تناك", "منايك", "قحبات", "قحبتك", "شرمطه", "هتلر", "بنلادن",
+    "عرصات", "عرصين", "ديوثين", "زناه"
+  ]);
+  addAll("E", [
+    "كوال", "كواله", "كوالين", "كوالات", "كوالة", "كوالي",
+    "زاملين", "زاملات", "زمله", "زملين", "زمالي", "زاملي",
+    "خوله", "بزازك", "بزازي", "بزازها", "بزازهم",
+    "متخلف", "متخلفه", "منحرف", "منحرفه", "واطي", "واطيه", "تافه", "وقح", "وقحه", "سافله",
+    "ممحون", "ممحونه", "مومس", "مومسه", "بغيه", "داعر", "داعره", "مثلي", "مثليه", "مثليين",
+    "قضيب", "مهبل", "ثدي", "ثديين", "شرج", "زنا", "طز", "جزمه", "مهبول", "مهبوله", "عيري", "عيرك",
+    "دواعش", "الدواعش", "ارهابي", "ارهابيه", "ارهابيين", "وصيف", "اوصيف", "وصيفه", "عبيد",
+    "نايك", "ناكه", "ناكوه", "كسسك", "منيوكه", "قحبه", "كحبه", "كحاب"
+  ]);
+  addAll("A", ["قحب", "كحب", "ملعن", "لعنه", "عاهرون", "زبالين"]);
+  combo(
+    ["ابن", "بنت", "ولد", "اولاد", "ولاد", "اخو", "اخت", "ابو", "ام"],
+    ["ال", "ل"],
+    ["زامل", "زامله", "كوال", "كواله", "معرص", "مخنث", "خنيث", "منيك", "كحبه", "زباله", "قوادين", "قواد", "جحش"]
+  );
+
+  /* إنجليزي: S */
+  addAll("S", [
+    "motherfucker", "cocksucker", "fuckyou", "fuckoff", "fuckface", "fucker", "fuckin", "clitoris", "whorebag",
+    "wanker", "bellend", "knobhead", "cumslut", "cumdump", "facefuck", "gangbang", "threesome", "creampie",
+    "bukkake", "cunnilingus", "fellatio", "sodomi", "bestial", "zoophil", "necrophil", "pornhub", "xvideos",
+    "xnxx", "xhamster", "redtube", "youporn", "prostitut", "slut", "wetback", "towelhead", "raghead",
+    "camel jockey", "nibba", "taliban", "alqaeda", "binladen", "kikes", "dafuq", "dumbfuck", "assfuck", "shitty",
+    "bitches", "bitchy", "bastards", "pssy", "pusy", "pusi", "phuck", "fxck", "fucc", "shyt", "cocksucker", "tosser", "twatwaffle"
+  ]);
+  addAll("E", [
+    "negro", "homo", "lesbo", "dyke", "paki", "kkk", "isil", "gtfo", "damn", "sperm", "boner", "bdsm", "fetish", "escort",
+    "nipple", "nipples", "vibrator", "incel", "cuck", "fuc", "fucc", "hentai", "ecchi", "bich", "sht", "fck", "azz", "arsch"
+  ]);
+  addAll("A", ["nutsack", "ballsack", "scrotum", "testicle", "foreskin", "buttplug", "queef", "smegma", "dong", "knob", "schlong"]);
+
+  /* عربيزي ليبي: S */
+  addAll("S", [
+    "ksomak", "ksmak", "ksmek", "ksomek", "ksemak", "ksamak", "kussomak", "kusomak", "kosomkom", "kosomha", "kosoma",
+    "kosommek", "kosamek", "kosemak", "kosmek", "gosomak", "qusomak",
+    "mtnak", "metnak", "mitnak", "mtnaak", "mtnek", "mitnek", "metnek", "mtnayak", "mtnayek",
+    "charmouta", "charmota", "sharmoota", "sharmouti", "sharameet", "sharmoot", "sharmouch",
+    "gahba", "gahbe", "kahbeh", "qahbeh", "qa7beh", "ka7beh", "qa7bat", "ka7bat",
+    "dinamak", "dinemak", "dinomak", "dinabook", "dinabouk", "dinamek", "dinakhtak", "dinarabak", "dinrabak",
+    "yilan", "yelan", "yel3an", "yil3an", "yel3an", "yin3al", "yen3al",
+    "nikomak", "nikmak", "neekmak", "neikmak", "nikmek", "nikmk", "nikhtak", "nikrabak",
+    "zamilat", "zamelat", "zamelin", "zamilin", "mkhanath", "mkhanet", "mkhanith", "mkhannath", "khanith", "khaneeth"
+  ]);
+  /* عربيزي ليبي: L (كلمة كاملة + ya / el / al + لواحق) */
+  addAll("L", [
+    "kos", "kosa", "kelb", "7mar", "7mara", "hmar", "hmara", "3ars", "3rs", "3ers", "m3ars", "m3rs", "m3ers", "3arsa",
+    "zamel", "zaml", "zamil", "zamyl", "zameel", "kwal", "kawal", "kuwal", "kewal", "kwaal",
+    "zeb", "zebb", "zbi", "tiz", "tizi", "teez", "nayek", "nayik", "nayak", "nayyak", "mnayek", "mnayak", "mnayik",
+    "khawal", "5awal", "5awel", "khawel", "khowal", "7ayawan", "hayawan", "ghabi", "ghaby", "7mara", "wsikh", "wasikh", "wsikha"
+  ]);
+  combo(
+    ["ibn", "ebn", "ibin", "wld", "wled", "walad", "weld", "ould", "wlid", "bint", "bnt", "bent", "ebnt", "akho", "okht", "ukht", "wlad", "awlad"],
+    ["el", "al", "l", "il"],
+    [["kelb", "(?!i)"], "haram", "7aram", "qahba", "qa7ba", "9a7ba", "kahba", "ka7ba", "zamel", "zaml", "kwal", "kawal", "metnak", "mtnak", "mnayak", "manyak", "mnayek", "3ars", "3rs", "m3ars", "sharmouta", "gahba", "khawal", "5awal"]
+  );
+
+  /* أسماء مسموحة بالاسم الكامل حتى لو أثارت الفلتر (يمكن للمشرف إضافة المزيد من اللوحة) */
   const ALLOW = [];
   const ALLOW_SET = {}; ALLOW.forEach(function (n) { ALLOW_SET[clean(n)] = 1; });
 
   /* =====================================================================
+     قائمة المشرف: {block:[{w, m}], allow:[اسم]}
+       m = auto | s (في أي موضع) | a (مع بادئات ولواحق) | e (كلمة كاملة)
+     ===================================================================== */
+  function setCustom(cfg) {
+    cfg = cfg || {};
+    const ng = mkG(), al = {}, blk = [], alw = [];
+    (cfg.block || []).forEach(function (it) {
+      const w = String(typeof it === "string" ? it : (it && it.w) || "").replace(/\s+/g, " ").trim().slice(0, 40);
+      let m = (it && it.m) || "auto"; if (["auto", "s", "a", "e"].indexOf(m) < 0) m = "auto";
+      const c = clean(w); if (c.length < 2) return;
+      let t = m === "s" ? "S" : m === "a" ? "A" : m === "e" ? "E" : (c.length >= 5 ? "S" : c.length >= 3 ? "A" : "E");
+      if (/\s/.test(w) && t !== "S") t = "S";                   // عبارة من عدة كلمات
+      add(t, w, "", ng, true); blk.push({ w: w, m: m });
+    });
+    (cfg.allow || []).forEach(function (n) {
+      const w = String(n || "").replace(/\s+/g, " ").trim().slice(0, 30), c = clean(w);
+      if (c) { al[c] = 1; alw.push(w); }
+    });
+    CG = ng; CALLOW = al; CUSTOM = { block: blk, allow: alw };
+  }
+
+  /* =====================================================================
      الفحص
      ===================================================================== */
-  function prep(s, re, digits) {
-    let t = s.split(re).filter(Boolean);
+  function prep(s, re) {
+    const t = s.split(re).filter(Boolean);
     const out = t.slice(), run = [];
     const flush = function () { if (run.length > 1) out.push(run.join("")); run.length = 0; };
     t.forEach(function (x) { if (x.length === 1) run.push(x); else flush(); });
     flush();
     return { tok: out, comp: t.join("") };
   }
-  function hit(g, v) {
-    for (let i = 0; i < g.plain.length; i++) if (g.plain[i].test(v.comp)) return true;
-    for (let i = 0; i < g.tok.length; i++) for (let j = 0; j < v.tok.length; j++) if (g.tok[i].test(v.tok[j])) return true;
-    return false;
+  function find(g, v) {
+    for (let i = 0; i < g.plain.length; i++) if (g.plain[i].re.test(v.comp)) return g.plain[i].w;
+    for (let i = 0; i < g.tok.length; i++) for (let j = 0; j < v.tok.length; j++) if (g.tok[i].re.test(v.tok[j])) return g.tok[i].w;
+    return "";
   }
-  function isBad(name) {
+  /* يعيد null إن كان الاسم مقبولاً، وإلا {w: الكلمة المطابقة, src: "built-in" | "custom"} */
+  function check(name) {
     const b = base(String(name || "")).slice(0, 80);
-    if (ALLOW_SET[b.replace(/[^a-z0-9\u0621-\u064A]/g, "")]) return false;
+    const key = b.replace(/[^a-z0-9\u0621-\u064A]/g, "");
+    if (ALLOW_SET[key] || CALLOW[key]) return null;
     const L = /[^a-z\u0621-\u064A]+/, LD = /[^a-z0-9\u0621-\u064A]+/;
     const v1 = prep(b.replace(/[0134578@$!€]/g, function (c) { return LEET1[c]; }), L);   // أرقام → حروف (f4ck ، sh1t)
     const v3 = prep(b.replace(/[0-9]/g, " "), L);                                         // أرقام → فواصل (kos123)
     const v2 = prep(b.replace(/[014@$!€]/g, function (c) { return LEET2[c]; }), LD);      // عربيزي (3ars ، ka7ba)
-    return hit(G.N, v1) || hit(G.N, v3) || hit(G.D, v2);
+    let w = find(G.N, v1) || find(G.N, v3) || find(G.D, v2);
+    if (w) return { w: w, src: "built-in" };
+    w = find(CG.N, v1) || find(CG.N, v3) || find(CG.D, v2);
+    return w ? { w: w, src: "custom" } : null;
   }
+  const isBad = function (name) { return !!check(name); };
 
   /* ---------- التحقق الكامل من الاسم (مشترك بين الصفحة والخادم) ---------- */
   const cleanName = function (v) { return String(v == null ? "" : v).replace(/\s+/g, " ").trim(); };
@@ -227,5 +361,9 @@
     return "";
   }
 
-  root.SuperFilter = { isBad: isBad, nameError: nameError, cleanName: cleanName, norm: norm, hid: hid };
+  root.SuperFilter = {
+    isBad: isBad, check: check, nameError: nameError, cleanName: cleanName, norm: norm, hid: hid,
+    setCustom: setCustom, getCustom: function () { return CUSTOM; },
+    builtIn: function () { return LIST.slice(); }
+  };
 })(typeof globalThis !== "undefined" ? globalThis : this);
