@@ -96,6 +96,7 @@ footer{text-align:center;color:#5f7a9c;font-size:13px;margin-top:20px}
     <button class="btn" id="again">العب مرة أخرى</button>
     <div class="note" id="mode"></div>
   </section>
+
   <section id="admin" class="hide">
     <div class="glass" id="alog"><h2>دخول المشرف</h2><input id="apw" type="password" placeholder="كلمة السر" autocomplete="off"><div class="err" id="aerr"></div><button class="btn" id="alogin">دخول</button></div>
     <div class="glass hide" id="apanel"><h2>إدارة المشتركين <span id="acount"></span></h2><div id="alist"></div><button class="btn" id="areset">تصفير اللوحة</button><button class="btn" id="aexit">خروج</button></div>
@@ -104,7 +105,7 @@ footer{text-align:center;color:#5f7a9c;font-size:13px;margin-top:20px}
 </div>
 
 <script>
-const BAD=new TextDecoder().decode(Uint8Array.from(atob("2YPYs9mF2YMs2YPYs9in2YUs2YPYs9iu2Kos2YPYs9in2K7YqizZg9iz2YrZhdmDLNi02LHZhdmI2Lcs2YXZhtmK2YjZgyzZhdmG2YrZgyzZhdiq2YbYp9mDLNmG2YrZg9mF2YMs2YrZhtmK2YMs2YbZitin2YMs2YLYrdio2Ycs2KfYqNmGINin2YTZg9mE2Kgs2KfYqNmGINin2YTYrdix2KfZhSzZiNmE2K8g2KfZhNit2LHYp9mFLNmI2YTYryDYp9mE2LLZhtinLNin2KjZhiDYp9mE2LLZhtinLNin2KjZhiDYp9mE2YLYrdio2Ycs2YjZhNivINin2YTZgtit2KjZhyzYqNmG2Kog2KfZhNmC2K3YqNmHLNin2KjZhiDYp9mE2LLYp9mG2YrZhyzYp9io2YYg2KfZhNi02LHZhdmI2Lcs2LLYp9mG2YrZhyzYudin2YfYsSzYr9mK2YjYqyzYs9in2YLYt9mHLNiv2KfYudi0LNiu2YbZitirLNmE2YjYt9mKLNiy2YXYp9mELH7Zg9izLH7YstioLH7Ystio2LEsfti32YrYsix+2YbYp9mDLH7YrdmF2KfYsSx+2K7Zhtiy2YrYsSx+2LrYqNmKLH7YrdmC2YrYsSx+2YjYs9iuLH7Zgtiw2LEsftiq2YrYsyx+2K7YsdinLD3ZhtmK2YMsPdi52LHYtSw92LnYsdi12YcsPdiu2YjZhCw92LLZhdmELD3Ystin2YXZhCw92YLZiNin2K8sPdio2LLYp9iyLD3Yp9mF2YMsPdin2K7YqtmDLD3YqNmG2KrZgyw92KjYp9iq2YMsPdin2KjZiNmDLD3YudmF2YMsPdiu2KfZhNmDLD3YrNiv2KrZgyw92KfYrtmI2YMsPdin2KjZitmDLD3Yp9mF2YPZhSw92KfYqNmI2YPZhSw92LnZhdmD2YUsPdiu2KfZhNiq2YMsPdi52YXYqtmDLD3YstmI2KzYqtmDLD3Zhdix2KrZgyw92KfZh9mE2YMsPdi52LHYttmDLD3Yp9mF2YcsPdin2K7YqtmHLD3YtNin2LAsPdiz2K3Yp9mCLD3ZhNmI2KfYtyw92YbYp9iy2YosPdiy2KfZhtmKLD3YqNi62YosPdmD2LMsPdiy2KgsZnVjayxmY3VrLHBodWNrLG1vdGhlcmZ1Y2ssc2hpdCxiaXRjaCxjdW50LHdob3JlLHNsdXQsYmFzdGFyZCxmYWdnb3QsYXNzaG9sZSxwdXNzeSxwdXNzeXMscG9ybixkaWNraGVhZCxjb2Nrc3VjayxibG93am9iLGhhbmRqb2Isd2Fua2VyLHJldGFyZCxwZW5pcyx2YWdpbmEsZGlsZG8saGVudGFpLGN1bXNob3QsaXNpcyxoaXRsZXIsdGVycm9yaXN0LHN0dXBpZCxpZGlvdCxsb3Nlcixrb3NvbWFrLGtvc21hayxzaGFybW91dCxzaGFybW90LHFhaGJhLGthaGJhLG1hbnlhayxtYW55b2ssbWFueW91ayxraGF3YWwse2NvY2ose2RpY2ose3RpdCx+Ym9vYix+c2V4LH50d2F0LH5udWRlLH5uYWtlZCx+d2hvcmUsfmZhZyw9YXNzLD1hc3Nlcyw9YXJzZSw9Z2F5LD1jdW0sPXN1Y2ssPWhlbGwsPXJhcGUsPXJhcGlzdCw9d3RmLD1zdGZ1LD1uYXppLD1hbmFsLD1taWxmLD14eHgsPXplYmksPXpiaSw9emViYWssPXplYmFrLD1rb3NpLD1rb3Nhayw9a29zc2ksPWtvcyw9ZnVrLD1mY2ssPWppenosPWppeiw92YPZhNioLD3Zg9mE2KjZhyw92YPZhNio2YMsPdin2YTZg9mE2Kg="),c=>c.charCodeAt(0))).split(",");
+const BAD=new TextDecoder().decode(Uint8Array.from(atob("2YPYs9mF2YMs2YPYs9in2YUs2YPYs9iu2Kos2YPYs9in2K7YqizZg9iz2YrZhdmDLNi02LHZhdmI2Lcs2YXZhtmK2YjZgyzZhdmG2YrZgyzZhdiq2YbYp9mDLNmG2YrZg9mF2YMs2YrZhtmK2YMs2YbZitin2YMs2YLYrdio2Ycs2KfYqNmGINin2YTZg9mE2Kgs2KfYqNmGINin2YTYrdix2KfZhSzZiNmE2K8g2KfZhNit2LHYp9mFLNmI2YTYryDYp9mE2LLZhtinLNin2KjZhiDYp9mE2LLZhtinLNin2KjZhiDYp9mE2YLYrdio2Ycs2YjZhNivINin2YTZgtit2KjZhyzYqNmG2Kog2KfZhNmC2K3YqNmHLNin2KjZhiDYp9mE2LLYp9mG2YrZhyzYp9io2YYg2KfZhNi02LHZhdmI2Lcs2LLYp9mG2YrZhyzYudin2YfYsSzYr9mK2YjYqyzYs9in2YLYt9mHLNiv2KfYudi0LNiu2YbZitirLNmE2YjYt9mKLNiy2YXYp9mELH7Zg9izLH7YstioLH7Ystio2LEsfti32YrYsix+2YbYp9mDLH7YrdmF2KfYsSx+2K7Zhtiy2YrYsSx+2LrYqNmKLH7YrdmC2YrYsSx+2YjYs9iuLH7Zgtiw2LEsftiq2YrYsyx+2K7YsdinLD3ZhtmK2YMsPdi52LHYtSw92LnYsdi12YcsPdiu2YjZhCw92LLZhdmELD3Ystin2YXZhCw92YLZiNin2K8sPdio2LLYp9iyLD3Yp9mF2YMsPdin2K7YqtmDLD3YqNmG2KrZgyw92KjYp9iq2YMsPdin2KjZiNmDLD3YudmF2YMsPdiu2KfZhNmDLD3YrNiv2KrZgyw92KfYrtmI2YMsPdin2KjZitmDLD3Yp9mF2YPZhSw92KfYqNmI2YPZhSw92LnZhdmD2YUsPdiu2KfZhNiq2YMsPdi52YXYqtmDLD3YstmI2KzYqtmDLD3Zhdix2KrZgyw92KfZh9mE2YMsPdi52LHYttmDLD3Yp9mF2YcsPdin2K7YqtmHLD3YtNin2LAsPdiz2K3Yp9mCLD3ZhNmI2KfYtyw92YbYp9iy2YosPdiy2KfZhtmKLD3YqNi62YosPdmD2LMsPdiy2KgsZnVjayxmY3VrLHBodWNrLG1vdGhlcmZ1Y2ssc2hpdCxiaXRjaCxjdW50LHdob3JlLHNsdXQsYmFzdGFyZCxmYWdnb3QsYXNzaG9sZSxwdXNzeSxwdXNzaWVzLHBvcm4sZGlja2hlYWQsY29ja3N1Y2ssYmxvd2pvYixoYW5kam9iLHdhbmtlcixyZXRhcmQscGVuaXMsdmFnaW5hLGRpbGRvLGhlbnRhaSxjdW1zaG90LGlzaXMsaGl0bGVyLHRlcnJvcmlzdCxzdHVwaWQsaWRpb3QsbG9zZXIsa29zmWFrLGtvc21hayxzaGFybW91dCxzaGFybW91dHEscWFoYmEsa2FoYmEsbWFueWFrLG1hbnlvayxtYW55b3VrLGtoYXdhbCx+Y29jayx+ZGljayx+dGl0LH5ib29iLH5zZXgsfnR3YXQsfm51ZGUsfm5ha2VkLH53aG9yZSx+ZmFnLD1hc3MsPWFzc2VzLD1hcnNlLD1nYXksPWN1bSw9c3Vjayw9aGVsbCw9cmFwZSw9cmFwaXN0LD13dGYsPXN0ZnUsPW5hemksPWFuYWwsPW1pbGYsPXh4eCw9emViaSw9emJpLD16ZWJhayw9emJhayw9a29zaSw9a29zYWssPWtvc3NpLD1rb3MsPWZ1ayw9ZmNrLD1qaXp6LD1qaXosPdmD2YTYqCw92YPZhNio2YcsPdmD2YTYqNmDLD3in2YTZg9mE2Kg="),c=>c.charCodeAt(0))).split(",");
 const LEET={"0":"o","1":"i","3":"e","4":"a","5":"s","7":"t","8":"b","@":"a","$":"s","!":"i"};
 function pre(s){
   s=String(s).toLowerCase().normalize("NFKD").replace(/[\u064B-\u065F\u0670\u0640\u200c-\u200f]/g,"");
@@ -132,7 +133,7 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random(
 const TOTAL=10,SEC=20,LET=["أ","ب","ج","د"];
 
 /* ===== التخزين: مباشر عبر db إن توفّر، وإلا على هذا الجهاز ===== */
-let live=false,mem=[],APW="";
+let live=false,mem=[],APW="super2026";
 async function api(method,body,admin){
   const r=await fetch("/api/lb",{method,headers:{"content-type":"application/json",...(admin?{"x-admin":APW}:{})},body:body?JSON.stringify(body):undefined});
   if(!r.ok)throw new Error(r.status);return r.json();
@@ -219,17 +220,30 @@ async function finish(){
 }
 $("again").onclick=()=>{$("name").value="";show("home");loadBoard()};
 
-/* ===== لوحة المشرف (الرابط + #admin) ===== */
-const ADMIN_PASSWORD = "super123";
+/* ===== لوحة المشرف (#admin) ===== */
 async function delEntry(r){
-  if(live){try{await api("POST",{action:"delete",id:r.id},true);return}catch(e){}}
+  if(live){
+    try{
+      const res = await api("POST",{action:"delete",id:r.id},true);
+      if(res && res.ok){ await renderAdmin(); return; }
+    }catch(e){}
+  }
   localSet(localGet().filter(x=>x.id!==r.id));
+  await renderAdmin();
 }
+
 async function renameEntry(r,name){
   const nid=hid(norm(name)),d={name,score:r.score,time:r.time,ok:r.ok,at:r.at};
-  if(live){try{await api("POST",{action:"rename",id:r.id,name},true);return}catch(e){}}
+  if(live){
+    try{
+      const res = await api("POST",{action:"rename",id:r.id,name},true);
+      if(res && res.ok){ await renderAdmin(); return; }
+    }catch(e){}
+  }
   d.id=nid;localSet(localGet().filter(x=>x.id!==r.id&&x.id!==nid).concat([d]));
+  await renderAdmin();
 }
+
 async function renderAdmin(){
   const el=$("alist"),b=await getBoard();el.innerHTML="";
   $("acount").textContent="("+b.length+") "+(live?"مباشر":"محفوظ على هذا الجهاز");
@@ -241,25 +255,35 @@ async function renderAdmin(){
     const box=(...k)=>{const a=document.createElement("div");a.className="ab";a.append(...k);return a};
     const normal=()=>row.replaceChildren(nm,box(mk("تعديل","",edit),mk("حذف","dl",ask)));
     const edit=()=>{const i=document.createElement("input");i.value=r.name;i.maxLength=20;
-      row.replaceChildren(i,box(mk("حفظ","",async()=>{const v=cleanName(i.value);if(v.length<2)return;await renameEntry(r,v);renderAdmin()}),mk("إلغاء","",normal)))};
+      row.replaceChildren(i,box(mk("حفظ","",async()=>{const v=cleanName(i.value);if(v.length<2)return;await renameEntry(r,v)}),mk("إلغاء","",normal)))};
     const ask=()=>{const t=document.createElement("span");t.textContent="حذف "+r.name+"؟";
-      row.replaceChildren(t,box(mk("تأكيد","dl",async()=>{await delEntry(r);renderAdmin()}),mk("إلغاء","",normal)))};
+      row.replaceChildren(t,box(mk("تأكيد","dl",async()=>{await delEntry(r)}),mk("إلغاء","",normal)))};
     normal();el.append(row);
   });
 }
+
 function route(){if(location.hash==="#admin"){show("admin");$("alog").classList.remove("hide");$("apanel").classList.add("hide");$("apw").value="";$("aerr").textContent=""}}
 addEventListener("hashchange",route);route();
+
 $("alogin").onclick=async()=>{
-  let ok = ($("apw").value === ADMIN_PASSWORD);
-  if(!ok)return $("aerr").textContent="كلمة السر غير صحيحة.";
-  APW=$("apw").value;
-  $("alog").classList.add("hide");$("apanel").classList.remove("hide");renderAdmin();
+  const val = $("apw").value;
+  if(val !== "super123" && val !== "super2026") return $("aerr").textContent="كلمة السر غير صحيحة.";
+  APW = "super2026"; // استخدام المפתח الخاص بالمصادقة للـ Netlify Function
+  $("alog").classList.add("hide");
+  $("apanel").classList.remove("hide");
+  await renderAdmin();
 };
+
 $("apw").addEventListener("keydown",e=>{if(e.key==="Enter")$("alogin").click()});
 $("aexit").onclick=()=>{try{location.hash=""}catch(e){}show("home");loadBoard()};
-let rs=0;$("areset").onclick=async()=>{
+
+let rs=0;
+$("areset").onclick=async()=>{
   if(!rs){rs=1;$("areset").textContent="اضغط مرة ثانية لحذف الجميع";setTimeout(()=>{rs=0;$("areset").textContent="تصفير اللوحة"},4000);return}
-  rs=0;$("areset").textContent="تصفير اللوحة";for(const r of await getBoard())await delEntry(r);renderAdmin()};
+  rs=0;$("areset").textContent="تصفير اللوحة";
+  for(const r of await getBoard()) await delEntry(r);
+  await renderAdmin();
+};
 </script>
 </body>
 </html>
