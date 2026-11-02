@@ -60,6 +60,22 @@ h2{font-size:15px;font-weight:600;color:var(--mut);margin-bottom:8px}
 .hide{display:none}
 .ar.flag{background:#ff5a7814;border-radius:8px;padding-inline:8px}
 .ar .tag{color:#ff8da1;font-size:12px;margin-inline-start:6px}
+.wd{margin-top:12px;border-top:1px solid var(--ln);padding-top:6px}
+.wd h3{font-size:14px;font-weight:600;color:var(--mut);margin:16px 0 6px}
+.wd textarea,.wd select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a4568;background:#030b16;color:#fff;font:400 15px 'Cairo',sans-serif;text-align:right;outline:none}
+.wd textarea{min-height:84px;resize:vertical}
+.wd select{margin-top:8px}
+.wd textarea:focus,.wd select:focus{border-color:var(--ac)}
+.wd input{text-align:right;font-size:15px;padding:9px 12px}
+.wd .tg{color:var(--mut);font-size:12px;margin-top:8px}
+.wd .res{margin-top:8px;font-size:14px;min-height:22px}
+.wd .res.no{color:#ff8da1}.wd .res.yes{color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:260px;overflow:auto}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;border:1px solid #2a4568;font-size:13px;background:#030b16}
+.chip small{color:var(--mut);font-size:11px}
+.chip button{background:none;border:0;color:#ff8da1;cursor:pointer;font:600 16px/1 'Cairo',sans-serif;padding:0}
+.chip.bi{border-color:var(--ln);color:#c9d8ee}
+.wd details summary{cursor:pointer;color:var(--mut);font-size:14px;margin-top:16px}
 footer{text-align:center;color:#5f7a9c;font-size:13px;margin-top:20px}
 </style>
 </head>
@@ -100,7 +116,34 @@ footer{text-align:center;color:#5f7a9c;font-size:13px;margin-top:20px}
   </section>
   <section id="admin" class="hide">
     <div class="glass" id="alog"><h2>دخول المشرف</h2><input id="apw" type="password" placeholder="كلمة السر" autocomplete="off"><div class="err" id="aerr"></div><button class="btn" id="alogin">دخول</button></div>
-    <div class="glass hide" id="apanel"><h2>إدارة المشتركين <span id="acount"></span></h2><div class="err" id="amsg"></div><div id="alist"></div><button class="btn" id="apurge">حذف الأسماء غير اللائقة</button><button class="btn" id="areset">تصفير اللوحة</button><button class="btn" id="apwbtn">تغيير كلمة السر</button><div class="hide" id="apwbox"><input id="apw2" type="password" placeholder="كلمة السر الجديدة (6 أحرف على الأقل)" autocomplete="off"><button class="btn" id="apwsave">حفظ كلمة السر الجديدة</button></div><button class="btn" id="aexit">خروج</button></div>
+    <div class="glass hide" id="apanel"><h2>إدارة المشتركين <span id="acount"></span></h2><div class="err" id="amsg"></div><div id="alist"></div><button class="btn" id="awbtn">إدارة الكلمات المحظورة</button>
+<div class="hide wd" id="awbox">
+  <h3>إضافة كلمات محظورة</h3>
+  <textarea id="awin" placeholder="اكتب كلمة أو أكثر، وافصل بينها بفاصلة أو سطر جديد (عربي، ليبي، إنجليزي، عربيزي)"></textarea>
+  <select id="awmode">
+    <option value="auto">تلقائي (موصى به)</option>
+    <option value="s">تُحجب في أي مكان داخل الاسم (الأقوى)</option>
+    <option value="a">الكلمة مع البادئات واللواحق (ال، يا، ـك، ـها ...)</option>
+    <option value="e">الكلمة كاملة فقط</option>
+  </select>
+  <button class="btn" id="awadd">إضافة للقائمة</button>
+  <div class="tg">كل كلمة تُحجب تلقائياً مع تكرار الحروف (قححبة) والفواصل (ق.ح.ب.ة) والتشكيل والتطويل والأرقام بدل الحروف. وضع «أي مكان» يتحمّل أيضاً حرفاً زائداً بين الحروف.</div>
+  <h3>جرّب اسماً</h3>
+  <input id="awtest" placeholder="اكتب اسماً لتعرف هل سيُحجب" autocomplete="off">
+  <div class="res" id="awres"></div>
+  <h3>كلماتك المحظورة <span id="awc1"></span></h3>
+  <div class="chips" id="awcustom"></div>
+  <h3>أسماء مسموحة رغم الفلتر <span id="awc2"></span></h3>
+  <div class="tg">اسم كامل يُقبل دائماً حتى لو حجبه الفلتر بالخطأ (مثل لقب عائلة بريء).</div>
+  <input id="awallow" placeholder="اكتب الاسم الكامل المسموح" autocomplete="off">
+  <button class="btn" id="awallowadd">سماح بهذا الاسم</button>
+  <div class="chips" id="awallowl"></div>
+  <details id="awdet"><summary>القائمة المدمجة بالكامل (<span id="awc3"></span>) — للاطلاع فقط</summary>
+    <input id="awsearch" placeholder="ابحث في القائمة المدمجة" autocomplete="off" style="margin-top:8px">
+    <div class="chips" id="awbuilt"></div>
+  </details>
+</div>
+<button class="btn" id="apurge">حذف الأسماء غير اللائقة</button><button class="btn" id="areset">تصفير اللوحة</button><button class="btn" id="apwbtn">تغيير كلمة السر</button><div class="hide" id="apwbox"><input id="apw2" type="password" placeholder="كلمة السر الجديدة (6 أحرف على الأقل)" autocomplete="off"><button class="btn" id="apwsave">حفظ كلمة السر الجديدة</button></div><button class="btn" id="aexit">خروج</button></div>
   </section>
   <footer>فريق SUPER للروبوتات</footer>
 </div>
@@ -134,6 +177,7 @@ async function getBoard(){
   return rows(localGet());
 }
 async function saveScore(r){
+  if(nameError(r.name))return false;   // لا يُحفظ اسم محظور حتى في الوضع المحلي
   const id=hid(norm(r.name)); let saved=false;
   try{await api("POST",{action:"score",name:r.name,score:r.score,time:r.time,ok:r.ok});saved=true;live=true}catch(e){if(e.status===422)return false;live=false}
   if(!saved){const a=localGet(),i=a.findIndex(x=>x.id===id);r.id=id;
@@ -157,10 +201,26 @@ let G;
 function cleanName(v){return v.replace(/\s+/g," ").trim()}
 const NAME_MSG={bad_length:"الرجاء كتابة اسمك (حرفان على الأقل).",bad_chars:"يُسمح بالحروف والأرقام والمسافات فقط.",bad_contact:"لا يُسمح بكتابة أرقام هاتف أو روابط في الاسم.",bad_name:"هذا الاسم غير لائق، الرجاء اختيار اسم آخر."};
 $("name").addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click()});
-$("go").onclick=()=>{
+/* فحص فوري أثناء الكتابة: محلي لحظياً، ثم من الخادم (يشمل كلمات المشرف) بعد توقف قصير */
+let nTimer=null,nSeq=0;
+$("name").addEventListener("input",()=>{
+  clearTimeout(nTimer);const name=cleanName($("name").value),my=++nSeq;
+  if(name.length<2){$("err").textContent="";return}
+  const bad=nameError(name);
+  if(bad&&bad!=="bad_length")return $("err").textContent=NAME_MSG[bad];
+  $("err").textContent="";
+  nTimer=setTimeout(async()=>{
+    try{await api("POST",{action:"check",name})}
+    catch(e){if(e.status===422&&my===nSeq)$("err").textContent=NAME_MSG[e.code]||NAME_MSG.bad_name}
+  },350);
+});
+$("go").onclick=async()=>{
   const name=cleanName($("name").value),bad=nameError(name);
   if(bad)return $("err").textContent=NAME_MSG[bad];
   $("err").textContent="";
+  if($("go").disabled)return;$("go").disabled=true;
+  try{await api("POST",{action:"check",name})}catch(e){if(e.status===422){$("go").disabled=false;return $("err").textContent=NAME_MSG[e.code]||NAME_MSG.bad_name}}
+  $("go").disabled=false;
   G={name,i:0,score:0,ok:0,streak:0,time:0,qs:shuffle(shuffle(TEAM).slice(0,2).concat(shuffle(BANK).slice(0,TOTAL-2))).map(q=>{const o=shuffle(q[1].map((t,k)=>[t,k===q[2]]));return{t:q[0],o,e:q[3]}})};
   show("game");ask();
 };
@@ -258,12 +318,12 @@ $("alogin").onclick=async()=>{
     try{await api("POST",{action:"auth"},true);ok=true;live=true}
     catch(e){if(e.status===401)ok=false;else ok=(h===AH)}   // الخادم غير متاح: نعتمد البصمة المحلية
     if(!ok){APH="";return $("aerr").textContent="كلمة السر غير صحيحة."}
-    $("apw").value="";$("alog").classList.add("hide");$("apanel").classList.remove("hide");await renderAdmin();
+    $("apw").value="";$("alog").classList.add("hide");$("apanel").classList.remove("hide");try{await loadWords()}catch(e){}await renderAdmin();
   }catch(e){$("aerr").textContent="تعذّر التحقق من كلمة السر."}
   finally{btn.disabled=false}
 };
 $("apw").addEventListener("keydown",e=>{if(e.key==="Enter")$("alogin").click()});
-$("aexit").onclick=()=>{APH="";try{location.hash=""}catch(e){}show("home");loadBoard()};
+$("aexit").onclick=()=>{APH="";SuperFilter.setCustom({});$("awbox").classList.add("hide");try{location.hash=""}catch(e){}show("home");loadBoard()};
 
 // حذف كل الأسماء غير اللائقة دفعة واحدة (ضغطتان للتأكيد)
 let pg=0;$("apurge").onclick=async()=>{
@@ -296,6 +356,72 @@ $("apwsave").onclick=async()=>{
     const h=await sha(v);await api("POST",{action:"setpw",hash:h},true);APH=h;
     $("apwbox").classList.add("hide");$("apw2").value="";$("amsg").textContent="تم تغيير كلمة السر بنجاح.";
   }catch(e){$("amsg").textContent=adminErr(e)}
+};
+
+/* ===== إدارة الكلمات المحظورة ===== */
+const MODE_LBL={auto:"تلقائي",s:"أي موضع",a:"مع لواحق",e:"كلمة كاملة"};
+const TIER_LBL={S:"أي موضع",E:"كلمة كاملة",R:"مع ال/يا",P:"مع الضمائر",A:"مع لواحق",L:"عربيزي",C:"عبارات نسب"};
+let WL={block:[],allow:[]};
+const wmsg=t=>{$("amsg").textContent=t||""};
+const needLive=()=>{if(live)return false;wmsg("إدارة الكلمات تعمل فقط عند الاتصال بالخادم.");return true};
+async function loadWords(){
+  if(!live){WL={block:[],allow:[]};SuperFilter.setCustom(WL);return}
+  const d=await api("POST",{action:"words_get"},true);
+  WL={block:d.block||[],allow:d.allow||[]};SuperFilter.setCustom(WL);
+}
+async function pushWords(){
+  const d=await api("POST",{action:"words_set",block:WL.block,allow:WL.allow},true);
+  WL={block:d.block||[],allow:d.allow||[]};SuperFilter.setCustom(WL);
+}
+function mkChip(t,sub,onDel){
+  const c=document.createElement("span");c.className="chip"+(onDel?"":" bi");
+  const a=document.createElement("span");a.textContent=t;c.append(a);
+  if(sub){const s=document.createElement("small");s.textContent=sub;c.append(s)}
+  if(onDel){const b=document.createElement("button");b.textContent="×";b.title="حذف";b.onclick=onDel;c.append(b)}
+  return c;
+}
+function renderBuilt(){
+  const q=$("awsearch").value.trim().toLowerCase(),all=SuperFilter.builtIn();
+  const hit=q?all.filter(x=>x.w.toLowerCase().includes(q)):all;
+  $("awc3").textContent=all.length+" عنصراً";
+  const el=$("awbuilt");el.replaceChildren(...hit.slice(0,400).map(x=>mkChip(x.w,TIER_LBL[x.t]||"")));
+  if(hit.length>400){const n=document.createElement("div");n.className="tg";n.textContent="يُعرض أول 400 من "+hit.length+" — استخدم البحث لتضييق النتائج.";el.append(n)}
+  if(!hit.length)el.textContent="لا توجد نتائج.";
+}
+function renderWords(){
+  $("awc1").textContent="("+WL.block.length+")";$("awc2").textContent="("+WL.allow.length+")";
+  const cu=$("awcustom");cu.replaceChildren(...WL.block.map((x,i)=>mkChip(x.w,MODE_LBL[x.m]||"",()=>editWords(()=>WL.block.splice(i,1),"تم حذف الكلمة."))));
+  if(!WL.block.length)cu.textContent="لم تضف كلمات بعد.";
+  const al=$("awallowl");al.replaceChildren(...WL.allow.map((x,i)=>mkChip(x,"",()=>editWords(()=>WL.allow.splice(i,1),"تم إلغاء السماح."))));
+  renderBuilt();runTest();
+}
+async function editWords(mut,okMsg){
+  if(needLive())return;
+  const keep=JSON.stringify(WL);mut();
+  try{await pushWords();wmsg(okMsg||"");renderWords();await renderAdmin()}
+  catch(e){WL=JSON.parse(keep);SuperFilter.setCustom(WL);renderWords();wmsg(adminErr(e))}
+}
+const parseWords=v=>String(v).split(/[\n,،;؛]+/).map(x=>x.replace(/\s+/g," ").trim()).filter(x=>x.length>=2);
+function runTest(){
+  const v=cleanName($("awtest").value),el=$("awres");
+  if(!v){el.textContent="";el.className="res";return}
+  const e=nameError(v);
+  if(!e){el.textContent="الاسم مقبول.";el.className="res yes";return}
+  if(e==="bad_name"){const r=SuperFilter.check(v);el.textContent="محجوب"+(r?" — الكلمة المطابقة: "+r.w+(r.src==="custom"?" (من قائمتك)":" (من القائمة المدمجة)"):"");}
+  else el.textContent="محجوب — "+NAME_MSG[e];
+  el.className="res no";
+}
+$("awbtn").onclick=()=>{const b=$("awbox");b.classList.toggle("hide");if(!b.classList.contains("hide"))renderWords()};
+$("awtest").addEventListener("input",runTest);
+$("awsearch").addEventListener("input",renderBuilt);
+$("awadd").onclick=()=>{
+  const ws=parseWords($("awin").value),m=$("awmode").value;
+  if(!ws.length)return wmsg("اكتب كلمة واحدة على الأقل (حرفان فأكثر).");
+  editWords(()=>{ws.forEach(w=>{if(!WL.block.some(x=>x.w.toLowerCase()===w.toLowerCase()&&x.m===m))WL.block.push({w,m})});$("awin").value=""},"تمت إضافة "+ws.length+" كلمة. اضغط «حذف الأسماء غير اللائقة» لتنظيف الأسماء الموجودة.");
+};
+$("awallowadd").onclick=()=>{
+  const n=cleanName($("awallow").value);if(n.length<2)return wmsg("اكتب الاسم الكامل المسموح.");
+  editWords(()=>{if(!WL.allow.some(x=>x.toLowerCase()===n.toLowerCase()))WL.allow.push(n);$("awallow").value=""},"تم السماح بالاسم.");
 };
 </script>
 </body>
